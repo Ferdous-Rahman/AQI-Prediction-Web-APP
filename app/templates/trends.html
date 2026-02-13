@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3">Trends</h1>
+{% if not ready %}
+  <div class="alert alert-warning">Models are not trained yet. Train them first to enable trends.</div>
+{% else %}
+  <div class="card shadow-sm p-3">
+    <canvas id="trendChart" height="90"></canvas>
+  </div>
+
+  <script>
+    const series = {{ series|tojson }};
+    const ctx = document.getElementById('trendChart');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: series.datetime,
+        datasets: [
+          {label: 'AQI (observed)', data: series.AQI, tension: 0.2},
+          {label: 'PM2.5 (observed)', data: series.PM25, tension: 0.2},
+          {label: 'PM10 (observed)', data: series.PM10, tension: 0.2},
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: { x: { ticks: { maxTicksLimit: 10 } } }
+      }
+    });
+  </script>
+{% endif %}
+{% endblock %}

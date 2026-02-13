@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12">
+    <h1 class="h3">Air Quality Information Dashboard</h1>
+    {% if not ready %}
+      <div class="alert alert-warning">
+        Models are not trained yet. Run:
+        <code>python train_model.py --csv data/Narsingdi(BD)_AQI_2020_2024.csv --target AQI</code>
+        and
+        <code>python train_model.py --csv data/Narsingdi(BD)_AQI_2020_2024.csv --target PM2.5</code>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">AQI Guide - Air Quality Categories</h5>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>AQI Range</th>
+              <th>Category</th>
+              <th>Health Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="table-success">
+              <td><strong>0-50</strong></td>
+              <td><span class="badge bg-success">Good</span></td>
+              <td>Air quality is satisfactory</td>
+            </tr>
+            <tr class="table-info">
+              <td><strong>51-100</strong></td>
+              <td><span class="badge bg-info">Moderate</span></td>
+              <td>Acceptable for most people</td>
+            </tr>
+            <tr class="table-warning">
+              <td><strong>101-150</strong></td>
+              <td><span class="badge bg-warning text-dark">Unhealthy for Sensitive Groups</span></td>
+              <td>Sensitive groups may experience health effects</td>
+            </tr>
+            <tr class="table-danger">
+              <td><strong>151-200</strong></td>
+              <td><span class="badge bg-danger">Unhealthy</span></td>
+              <td>Everyone may begin to experience health effects</td>
+            </tr>
+            <tr style="background-color: #9b59b6; color: white;">
+              <td><strong>201-300</strong></td>
+              <td><span class="badge" style="background-color: #8e44ad;">Very Unhealthy</span></td>
+              <td>Health alert: everyone may experience serious effects</td>
+            </tr>
+            <tr style="background-color: #7f0000; color: white;">
+              <td><strong>301+</strong></td>
+              <td><span class="badge" style="background-color: #5c0000;">Hazardous</span></td>
+              <td>Health warning of emergency conditions</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">Air Pollution Impact</h5>
+      </div>
+      <div class="card-body text-center d-flex flex-column justify-content-center">
+        <img src="https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?w=800&auto=format&fit=crop" 
+             alt="Air Pollution" 
+             class="img-fluid rounded mb-3"
+             style="max-height: 300px; object-fit: cover;">
+        <p class="text-muted">
+          <strong>Air pollution</strong> affects millions globally, contributing to respiratory diseases, 
+          cardiovascular problems, and environmental degradation. Monitoring air quality helps protect public health.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

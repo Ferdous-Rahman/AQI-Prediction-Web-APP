@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-12">
+    <h1 class="h3">Monitoring & Prediction (Numeric AQI + Category)</h1>
+    {% if not ready %}
+      <div class="alert alert-warning">
+        Models are not trained yet. Run:
+        <code>python train_model.py --csv data/Narsingdi(BD)_AQI_2020_2024.csv --target AQI</code>
+        and
+        <code>python train_model.py --csv data/Narsingdi(BD)_AQI_2020_2024.csv --target PM2.5</code>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if ready %}
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="text-muted">Predicted AQI (latest)</div>
+          <div class="metric">{{ latest.pred_aqi|round(2) }}</div>
+        </div>
+        <span class="badge text-bg-primary badge-big">{{ latest.aqi_category }}</span>
+      </div>
+      <div class="text-muted small mt-2">Timestamp: {{ latest.datetime }}</div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3">
+      <div class="text-muted">Predicted PM2.5 (latest)</div>
+      <div class="metric">{{ latest.pred_pm25|round(2) }}</div>
+      <div class="text-muted small mt-2">µg/m³ (model output)</div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm p-3">
+      <div class="text-muted">Observed (latest row)</div>
+      <div class="small mt-2">
+        <div><b>AQI:</b> {{ latest.AQI|round(2) }}</div>
+        <div><b>PM2.5:</b> {{ latest["PM2.5"]|round(2) }}</div>
+        <div><b>PM10:</b> {{ latest.PM10|round(2) }}</div>
+      </div>
+      <div class="text-muted small mt-2">Used to compare prediction vs reality</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if ready %}
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="card shadow-sm p-3">
+      <h2 class="h6 mb-3">Key Inputs (latest snapshot)</h2>
+      <div class="row small">
+        <div class="col-md-3"><b>Temperature:</b> {{ latest.Temperature|round(2) }}</div>
+        <div class="col-md-3"><b>RH:</b> {{ latest.RH|round(2) }}</div>
+        <div class="col-md-3"><b>Wind Speed:</b> {{ latest["Wind Speed"]|round(2) }}</div>
+        <div class="col-md-3"><b>CO:</b> {{ latest.CO|round(2) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

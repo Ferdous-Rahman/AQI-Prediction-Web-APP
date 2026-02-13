@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3">Predict AQI & PM2.5</h1>
+
+{% if not ready %}
+  <div class="alert alert-warning">Models are not trained yet. Train them first to enable prediction.</div>
+{% else %}
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card shadow-sm p-3">
+        <form method="post">
+          <label class="form-label">Choose a timestamp (from recent window)</label>
+          <select class="form-select" name="timestamp" required>
+            {% for ts in options %}
+              <option value="{{ ts }}">{{ ts }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary mt-3" type="submit">Predict</button>
+        </form>
+        <p class="text-muted small mt-2">
+          This uses the engineered features (lags + rolling means) computed from the dataset history,
+          matching the methodology described in the paper.
+        </p>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm p-3">
+        <h2 class="h6">Result</h2>
+        {% if result %}
+          <div class="mb-2"><b>Timestamp:</b> {{ result.timestamp }}</div>
+          <div class="mb-2"><b>Predicted AQI:</b> {{ result.pred_aqi }} <span class="badge text-bg-primary">{{ result.aqi_category }}</span></div>
+          <div class="mb-2"><b>Predicted PM2.5:</b> {{ result.pred_pm25 }} µg/m³</div>
+          <div class="alert alert-info small mb-0">
+            Interpretation: category is derived from numeric AQI using standard AQI bands.
+          </div>
+        {% else %}
+          <div class="text-muted">Pick a timestamp and click Predict.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

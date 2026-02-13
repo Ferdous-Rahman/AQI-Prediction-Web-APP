@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3">Predict AQI & PM2.5</h1>
+
+{% if not ready %}
+  <div class="alert alert-warning">Models are not trained yet. Train them first to enable prediction.</div>
+{% else %}
+  
+  <!-- Mode Selection -->
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <div class="btn-group" role="group">
+        <input type="radio" class="btn-check" name="predmode" id="mode-future" value="future" {% if mode == 'future' or mode == 'historical' %}checked{% endif %} onchange="toggleMode('future')">
+        <label class="btn btn-outline-primary" for="mode-future">Future Date Prediction</label>
+        
+        <input type="radio" class="btn-check" name="predmode" id="mode-current" value="current" {% if mode == 'current' %}checked{% endif %} onchange="toggleMode('current')">
+        <label class="btn btn-outline-primary" for="mode-current">Custom Scenario</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Future Date Prediction Section -->
+  <div id="future-section">
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm p-3 border-primary">
+          <h5 class="text-primary mb-3">🔮 Future Date Prediction</h5>
+          <form method="post" id="future-form">
+            <input type="hidden" name="mode" value="future">
+            
+            <div class="alert alert-info mb-3">
+              Select any future date to predict AQI and PM2.5 levels based on current environmental patterns.
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Select Future Date</label>
+              <input type="date" class="form-control" name="future_date" required min="2026-01-13">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Select Time</label>
+              <input type="time" class="form-control" name="future_time" value="12:00">
+            </div>
+            
+            <button class="btn btn-primary" type="submit">Predict Future AQI & PM2.5</button>
+          </form>
+          <p class="text-muted small mt-3 mb-0">
+            ℹ️ Prediction uses latest environmental patterns and conditions from the dataset.
+          </p>
+        </div>
+      </div>
+      
+      <div class="col-lg-6">
+        <div class="card shadow-sm p-3">
+          <h5 class="mb-3">Prediction Result</h5>
+          {% if result_future %}
+            <div class="alert alert-success mb-2">
+              <h6>🎯 Predicted for: {{ result_future.timestamp }}</h6>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold">Predicted AQI:</span>
+                <span class="fs-4 text-primary">{{ result_future.pred_aqi }}</span>
+              </div>
+              <span class="badge text-bg-primary fs-6">{{ result_future.aqi_category }}</span>
+            </div>
+            <div class="mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Predicted PM2.5:</span>
+                <span class="fs-4 text-success">{{ result_future.pred_pm25 }} µg/m³</span>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-muted text-center py-4">
+              <p>Select a future date and time, then click predict to see AQI and PM2.5 forecasts.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Scenario Section -->
+  <div id="current-section" style="display:none">
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6">
+        <div class="card shadow-sm p-3">
+          <h5 class="mb-3">⚙️ Custom Environmental Scenario</h5>
+          <form method="post" id="custom-form">
+            <input type="hidden" name="mode" value="current">
+            
+            <div class="alert alert-warning mb-3">
+              Adjust environmental parameters to test different pollution scenarios.
+            </div>
+            
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small">Temperature (°C)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="Temperature" value="{% if result and result.inputs and 'Temperature' in result.inputs %}{{ result.inputs.Temperature }}{% endif %}" placeholder="{{ latest_features.Temperature }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">RH (%)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="RH" value="{% if result and result.inputs and 'RH' in result.inputs %}{{ result.inputs.RH }}{% endif %}" placeholder="{{ latest_features.RH }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Wind Speed (m/s)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="Wind Speed" value="{% if result and result.inputs and 'Wind Speed' in result.inputs %}{{ result.inputs['Wind Speed'] }}{% endif %}" placeholder="{{ latest_features['Wind Speed'] }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">CO (ppm)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="CO" value="{% if result and result.inputs and 'CO' in result.inputs %}{{ result.inputs.CO }}{% endif %}" placeholder="{{ latest_features.CO }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">NO2 (ppb)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="NO2" value="{% if result and result.inputs and 'NO2' in result.inputs %}{{ result.inputs.NO2 }}{% endif %}" placeholder="{{ latest_features.NO2 }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">O3 (ppb)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="O3" value="{% if result and result.inputs and 'O3' in result.inputs %}{{ result.inputs.O3 }}{% endif %}" placeholder="{{ latest_features.O3 }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">SO2 (ppb)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="SO2" value="{% if result and result.inputs and 'SO2' in result.inputs %}{{ result.inputs.SO2 }}{% endif %}" placeholder="{{ latest_features.SO2 }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">PM10 (µg/m³)</label>
+                <input type="number" step="0.01" class="form-control form-control-sm" name="PM10" value="{% if result and result.inputs and 'PM10' in result.inputs %}{{ result.inputs.PM10 }}{% endif %}" placeholder="{{ latest_features.PM10 }}">
+              </div>
+            </div>
+            <p class="text-muted small mt-2">
+              Leave fields empty to use latest known values (shown as placeholders).
+            </p>
+            
+            <button class="btn btn-primary mt-3" type="submit">Calculate AQI & PM2.5</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card shadow-sm p-3">
+          <h5 class="mb-3">Calculation Result</h5>
+          {% if result %}
+            <div class="mb-2"><b>Timestamp:</b> {{ result.timestamp }}</div>
+            <div class="mb-2"><b>Predicted AQI:</b> {{ result.pred_aqi }} <span class="badge text-bg-primary">{{ result.aqi_category }}</span></div>
+            <div class="mb-2"><b>Predicted PM2.5:</b> {{ result.pred_pm25 }} µg/m³</div>
+            {% if result.inputs and result.inputs != "Using latest known conditions" %}
+              <div class="alert alert-success small mb-0 mt-2">
+                <strong>Custom inputs used:</strong><br>
+                {% for key, val in result.inputs.items() %}
+                  {{ key }}: {{ val }}<br>
+                {% endfor %}
+              </div>
+            {% elif result.inputs %}
+              <div class="alert alert-info small mb-0 mt-2">
+                {{ result.inputs }}
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="text-muted text-center py-4">
+              <p>Enter environmental parameters and click calculate.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script>
+    function toggleMode(mode) {
+      document.getElementById('future-section').style.display = mode === 'future' ? 'block' : 'none';
+      document.getElementById('current-section').style.display = mode === 'current' ? 'block' : 'none';
+    }
+    
+    // Initialize on page load based on server-provided mode
+    window.addEventListener('DOMContentLoaded', function() {
+      var currentMode = '{{ mode }}';
+      if (!currentMode || currentMode === 'historical') {
+        currentMode = 'future';
+      }
+      toggleMode(currentMode);
+    });
+  </script>
+{% endif %}
+{% endblock %}
